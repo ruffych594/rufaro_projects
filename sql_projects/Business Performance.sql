@@ -1,36 +1,128 @@
 -- Business Performance
 -- Do not jump straight to the SQL. Start by identifying the business meaning, tables, grain of the data, and required
 -- calculation.
--- Question 1: How many orders has the coffee shop received?
--- Business meaning: Measures customer demand - every order placed, regardless of its final outcome.
--- Tables/columns: Orders (order_id, status)
--- Grain: One row per order, so counting rows = counting orders.
+/* ============================================================
+   COFFEESHOPDB - QUESTION 1
+   Business Question:
+   How many orders has the coffee shop received?
+   ============================================================ */
 
--- SQL concepts: COUNT aggregate, GROUP BY
+
+/* ------------------------------------------------------------
+   1. MAIN ANALYSIS
+   Count the total number of orders received.
+   ------------------------------------------------------------ */
+
 SELECT
-	COUNT(order_id) AS Total_Orders
-FROM
-	Orders;
-
--- Further analysis: orders by status
-
-SELECT
-	status,
     COUNT(order_id) AS total_orders
-FROM
-	 Orders
-GROUP BY
-	status;
+FROM Orders;
 
--- Business interpretation:
-/* The coffee shop received 1 000 orders in total. Only 650 (65%) were completed,
-while 172 (17.2%) were cancelled and 178 (17.8%) were refunded.
-This means 35% of all orders did not turn into revenue, which is high for a coffee shop.
-Refunds are slightly more common than cancellations and are usually more costly, since the
-product has already been made before the money is returned.
-Next step: investigate why orders are being cancelled and refunded (by month, product,
-time of day or payment method). */
 
+/* ------------------------------------------------------------
+   2. VALIDATE THE RESULT
+   Break down the total orders by their status.
+   ------------------------------------------------------------ */
+
+SELECT
+    status,
+    COUNT(order_id) AS total_orders
+FROM Orders
+GROUP BY status;
+
+
+/* ------------------------------------------------------------
+   3. SUPPORTING BUSINESS METRICS
+   Calculate:
+   - Fulfilment Rate
+   - Refund Rate
+   - Cancellation Rate
+   ------------------------------------------------------------ */
+
+SELECT
+
+    /* Fulfilment Rate:
+       Completed Orders ÷ Total Orders × 100 */
+
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN status = 'Completed' THEN 1
+                ELSE 0
+            END
+        ) / COUNT(*),
+        2
+    ) AS fulfilment_rate_pct,
+
+
+    /* Refund Rate:
+       Refunded Orders ÷ (Completed + Refunded Orders) × 100 */
+
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN status = 'Refunded' THEN 1
+                ELSE 0
+            END
+        )
+        /
+        SUM(
+            CASE
+                WHEN status IN ('Completed', 'Refunded') THEN 1
+                ELSE 0
+            END
+        ),
+        2
+    ) AS refund_rate_pct,
+
+
+    /* Cancellation Rate:
+       Cancelled Orders ÷ Total Orders × 100 */
+
+    ROUND(
+        100.0 * SUM(
+            CASE
+                WHEN status = 'Cancelled' THEN 1
+                ELSE 0
+            END
+        ) / COUNT(*),
+        2
+    ) AS cancellation_rate_pct
+
+FROM Orders;
+
+
+/* ------------------------------------------------------------
+   4. BUSINESS INTERPRETATION
+
+   Total orders received: 1,000
+
+   Completed orders: 650
+   Cancelled orders: 172
+   Refunded orders: 178
+
+   Fulfilment Rate: 65.00%
+   Cancellation Rate: 17.20%
+   Refund Rate: 21.50%
+
+   Validation:
+
+   650 + 172 + 178 = 1,000
+
+   The status breakdown therefore agrees with the total
+   number of orders.
+
+   Business Insight:
+
+   350 orders did not remain as completed orders.
+   This creates an important business question:
+
+   Why are orders being cancelled or refunded?
+
+   Next Investigation:
+
+   Investigate the reasons for cancelled and refunded orders,
+   using the available data to identify the main drivers.
+   ------------------------------------------------------------ */
 
 -- Question 2: What is the total revenue generated?
 -- Tables/columns: Orders 
