@@ -55,7 +55,7 @@ SELECT
 
 
     /* Refund Rate:
-       Refunded Orders ÷ (Completed + Refunded Orders) × 100 */
+       Refunded Orders ÷ Total Orders × 100 */
 
     ROUND(
         100.0 * SUM(
@@ -63,14 +63,7 @@ SELECT
                 WHEN status = 'Refunded' THEN 1
                 ELSE 0
             END
-        )
-        /
-        SUM(
-            CASE
-                WHEN status IN ('Completed', 'Refunded') THEN 1
-                ELSE 0
-            END
-        ),
+        ) / COUNT(*),
         2
     ) AS refund_rate_pct,
 
@@ -102,7 +95,9 @@ FROM Orders;
 
    Fulfilment Rate: 65.00%
    Cancellation Rate: 17.20%
-   Refund Rate: 21.50%
+   Refund Rate: 17.80%
+
+   65.00% + 17.20% + 17.80% = 100%
 
    Validation:
 
