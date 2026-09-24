@@ -1,6 +1,4 @@
 -- Business Performance
--- Do not jump straight to the SQL. Start by identifying the business meaning, tables, grain of the data, and required
--- calculation.
 /* ============================================================
    COFFEESHOPDB - QUESTION 1
    Business Question:
@@ -108,7 +106,7 @@ FROM Orders;
 
    Business Insight:
 
-   350 orders did not remain as completed orders.
+   350 orders (35%) did not result in a completed sale.
    This creates an important business question:
 
    Why are orders being cancelled or refunded?
