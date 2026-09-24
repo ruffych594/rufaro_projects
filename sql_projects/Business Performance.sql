@@ -2,29 +2,34 @@
 -- Do not jump straight to the SQL. Start by identifying the business meaning, tables, grain of the data, and required
 -- calculation.
 -- Question 1: How many orders has the coffee shop received?
--- Tables/columns: Orders
+-- Business meaning: Measures customer demand - every order placed, regardless of its final outcome.
+-- Tables/columns: Orders (order_id, status)
+-- Grain: One row per order, so counting rows = counting orders.
 
--- SQL concepts:
+-- SQL concepts: COUNT aggregate, GROUP BY
 SELECT
 	COUNT(order_id) AS Total_Orders
 FROM
 	Orders;
 
--- Further anlysis 
+-- Further analysis: orders by status
 
 SELECT
 	status,
-    Count(order_id) AS total_orders
+    COUNT(order_id) AS total_orders
 FROM
 	 Orders
 GROUP BY
 	status;
 
 -- Business interpretation:
-/* The total number of orders that was received by the business was 1 000, to further
-dejuce the analysis we can discover that 650 were the completed orders, 172 orders were 
-cancelled due to various reasons and finally 178 was refunded.*/
--- This analysis is of paramount importance as it raises question as to why orders are being cancelled and refunded.
+/* The coffee shop received 1 000 orders in total. Only 650 (65%) were completed,
+while 172 (17.2%) were cancelled and 178 (17.8%) were refunded.
+This means 35% of all orders did not turn into revenue, which is high for a coffee shop.
+Refunds are slightly more common than cancellations and are usually more costly, since the
+product has already been made before the money is returned.
+Next step: investigate why orders are being cancelled and refunded (by month, product,
+time of day or payment method). */
 
 
 -- Question 2: What is the total revenue generated?
