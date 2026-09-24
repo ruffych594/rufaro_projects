@@ -6,26 +6,42 @@
 -- Tables/columns: Orders (order_id, status)
 -- Grain: One row per order, so counting rows = counting orders.
 
--- SQL concepts: COUNT aggregate, GROUP BY
+-- SQL concepts: COUNT aggregate, COUNT(DISTINCT), CASE WHEN, GROUP BY, subquery
+
+-- Data validation: confirm the grain before trusting the count.
+-- If all three counts match and null_statuses is 0, there are no missing or duplicate order IDs,
+-- and every order can be placed in a status group.
 SELECT
-	COUNT(order_id) AS Total_Orders
+	COUNT(*) AS total_rows,
+    COUNT(order_id) AS non_null_order_ids,
+    COUNT(DISTINCT order_id) AS unique_order_ids,
+    SUM(CASE WHEN status IS NULL THEN 1 ELSE 0 END) AS null_statuses
 FROM
 	Orders;
 
--- Further analysis: orders by status
+-- Main answer
+SELECT
+	COUNT(DISTINCT order_id) AS total_orders
+FROM
+	Orders;
+
+-- Further analysis: orders by status, with each status as a share of all orders
 
 SELECT
 	status,
-    COUNT(order_id) AS total_orders
+    COUNT(order_id) AS total_orders,
+    ROUND(100.0 * COUNT(order_id) / (SELECT COUNT(order_id) FROM Orders), 1) AS pct_of_orders
 FROM
-	 Orders
+	Orders
 GROUP BY
-	status;
+	status
+ORDER BY
+	total_orders DESC;
 
 -- Business interpretation:
 /* The coffee shop received 1 000 orders in total. Only 650 (65%) were completed,
 while 172 (17.2%) were cancelled and 178 (17.8%) were refunded.
-This means 35% of all orders did not turn into revenue, which is high for a coffee shop.
+This means 35% of all orders, more than 1 in 3, did not turn into revenue.
 Refunds are slightly more common than cancellations and are usually more costly, since the
 product has already been made before the money is returned.
 Next step: investigate why orders are being cancelled and refunded (by month, product,
