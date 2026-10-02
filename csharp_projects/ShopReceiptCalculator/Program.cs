@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http.Headers;
+using System;
 
 namespace Receipt
 {
@@ -14,38 +13,53 @@ namespace Receipt
 
             // the shop name (string)
             Console.Write("Enter shop name: ");
-            string shopName = Console.ReadLine();
+            string shopName = Console.ReadLine() ?? "";
 
             // the customer's name (string)
             Console.Write("Enter customer name: ");
-            string customerName = Console.ReadLine();
+            string customerName = Console.ReadLine() ?? "";
 
             // the item name (string)
             Console.Write("Enter item name: ");
-            string itemName = Console.ReadLine();
+            string itemName = Console.ReadLine() ?? "";
 
-            // the unit price (double)
+            // the unit price (double) - must be more than 0
+            double unitPrice;
             Console.Write("Enter unit price: ");
-            double unitPrice = Convert.ToDouble(Console.ReadLine());
+            while (!double.TryParse(Console.ReadLine(), out unitPrice) || unitPrice <= 0)
+            {
+                Console.Write("Please enter a price greater than 0: ");
+            }
 
-            // the quantity (int)
+            // the quantity (int) - must be at least 1
+            int quantity;
             Console.Write("Enter quantity: ");
-            int quantity = Convert.ToInt32(Console.ReadLine());
+            while (!int.TryParse(Console.ReadLine(), out quantity) || quantity < 1)
+            {
+                Console.Write("Please enter a whole number of 1 or more: ");
+            }
 
-            // the customer's budget (double)
+            // the customer's budget (double) - cannot be negative
+            double budget;
             Console.Write("Enter customer budget: ");
-            double budget = Convert.ToDouble(Console.ReadLine());
+            while (!double.TryParse(Console.ReadLine(), out budget) || budget < 0)
+            {
+                Console.Write("Please enter a budget of 0 or more: ");
+            }
 
             // Calculation
 
             double subtotal = unitPrice * quantity;
             double vat = subtotal * vatRate;
             double total = subtotal + vat;
-            int affordable = (int)(budget / unitPrice);
+
+            // How many items the budget covers once VAT is added to each item
+            double priceWithVat = unitPrice * (1 + vatRate);
+            int affordable = (int)(budget / priceWithVat);
 
             Console.WriteLine(); // Add a blank line for better readability
 
-            // Print a receipt with Console.WriteLine(), joining text and variables with +.
+            // Print a receipt with Console.WriteLine(), using string interpolation ($"...") to insert the variables.
             Console.WriteLine($"{new string('=', 6)} {shopName}'s Supplies {new string('=', 6)}");
             Console.WriteLine($"Customer: {customerName}");
             Console.WriteLine($"Item: {itemName} * {quantity}");
@@ -56,4 +70,3 @@ namespace Receipt
         }
     }
 }
-
